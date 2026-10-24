@@ -16,9 +16,9 @@ option("copy_to_mod")
     set_description("Copy dist/* to <XSE_TES5_MODS_PATH>/" .. PROJECT_NAME)
 option_end()
 
--- CommonLibSSE-NG (alandtse fork). Shared with the AudioUtil checkout for now; make it a
--- submodule (lib/commonlibsse-ng) before publishing the repository on its own.
-includes("../AudioUtil/lib/commonlibsse-ng")
+-- CommonLibSSE-NG (alandtse fork, v7.1.0+). Not part of this repository: clone it to
+-- lib/commonlibsse-ng (or add it as a submodule) before building.
+includes("lib/commonlibsse-ng")
 
 add_rules("mode.debug", "mode.release")
 

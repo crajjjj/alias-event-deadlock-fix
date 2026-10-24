@@ -4,3 +4,4 @@ vsxmake*/
 dist/SKSE/Plugins/*.dll
 dist/SKSE/Plugins/*.pdb
 *.user
+lib/
