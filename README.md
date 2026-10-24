@@ -39,19 +39,30 @@ installs nothing.
 
 ## Compatibility with other freeze fixes
 
-Fully compatible with both; they patch different code and address different lock cycles, so
-run them together.
+Fully compatible with all of the following; each patches different code for a different lock
+cycle, so run them together. Every one of them, this plugin included, checks the bytes it is
+about to patch and stands down if another plugin got there first, and no two of them share a
+patch site.
 
 - [WorkerSpinLockFix](https://github.com/GoAhead-at/FreezeLogger/tree/main/skyrim-freeze-fix)
-  (GoAhead-at/FreezeLogger) defers `ProcessLists::Add/RemoveFromTempChangeList` while its
-  static `LockA` spinlock is held (ids 19796, 41343, 41344, call sites in 36991 and 19799) and
-  wraps the job-wait and worker-ack sites (ids 34554 / 34557 SE, `WaitForJobTask`) with
-  watchdogs. Its Site-A wait is the same main-thread wait this freeze ends in, so its detector
-  will log this class too; its Layer 1 does not prevent it. No function is touched by both
-  plugins.
-- [skyrim-freeze-fix](https://github.com/GarrixWong/skyrim-freeze-fix) (GarrixWong) patches
-  the `LockForWrite` / `UnlockForWrite` call sites inside the ProcessLists cell-load path for
-  the static `ProcessLists` locks. No overlap with id 12720.
+  (GoAhead-at/FreezeLogger): defers `ProcessLists::Add/RemoveFromTempChangeList` while its
+  static `LockA` spinlock is held (ids 19796, 41343, 41344; call sites in 36991 and 19799) and
+  wraps the job-wait and worker-ack sites (SE ids 34554 / 34557, `WaitForJobTask`) with
+  watchdogs. Its "Site-A" wait is the same main-thread wait this freeze ends in, so its
+  detector logs this class too; its deferral layer does not prevent it.
+- [skyrim-freeze-fix](https://github.com/GarrixWong/skyrim-freeze-fix) (GarrixWong): patches
+  `LockForWrite` / `UnlockForWrite` call sites in the ProcessLists cell-load path for the
+  static ProcessLists locks (`stru_142F3B8E8` / `F0` on SE).
+- [Combat Group Deadlock Fix](https://www.nexusmods.com/skyrimspecialedition/mods/194877)
+  ([source](https://github.com/kezc7/CombatGroupDeadlockFix)): replaces the combat group's
+  "is this actor a target" check (id 44706) with the same check under a time-bounded read lock
+  on the combat group's `BSReadWriteLock`. Different function, different locks.
+- [Interrupt Package Deadlock Fix](https://www.nexusmods.com/skyrimspecialedition/mods/194878)
+  ([source](https://github.com/kezc7/InterruptPackageDeadlockFix)): redirects the two
+  `Actor::EndInterruptPackage` (id 37474) call sites inside AI pass id 41331 to the main thread,
+  because that pass holds the player's `ExtraDataList` lock for read and the cancel needs it
+  for write. That is the same lock object as thread A's above, but a single-thread
+  read-to-write cycle, and this plugin does not touch id 41331 or 37474.
 
 ## Build
 
