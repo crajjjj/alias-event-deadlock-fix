@@ -24,9 +24,6 @@
 // even if the instance is removed from the actor between the snapshot and the visit; the
 // worst case is one event delivered to an alias that was just cleared, instead of a freeze.
 
-#include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/sinks/msvc_sink.h>
-
 using namespace SKSE;
 using namespace SKSE::log;
 
@@ -68,27 +65,6 @@ namespace
 		}
 	}
 
-	void InitializeLogging()
-	{
-		auto path = log_directory();
-		if (!path) {
-			stl::report_and_fail("Unable to lookup SKSE logs directory.");
-		}
-		*path /= PluginDeclaration::GetSingleton()->GetName();
-		*path += L".log";
-
-		std::shared_ptr<spdlog::logger> logger;
-		if (IsDebuggerPresent()) {
-			logger = std::make_shared<spdlog::logger>("Global", std::make_shared<spdlog::sinks::msvc_sink_mt>());
-		} else {
-			logger = std::make_shared<spdlog::logger>("Global", std::make_shared<spdlog::sinks::basic_file_sink_mt>(path->string(), true));
-		}
-		logger->set_level(spdlog::level::info);
-		logger->flush_on(spdlog::level::info);
-		spdlog::set_default_logger(std::move(logger));
-		spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%l] %v");
-	}
-
 	bool InstallHook()
 	{
 		if (!REL::Module::IsAE()) {
@@ -120,11 +96,10 @@ namespace
 
 SKSEPluginLoad(const LoadInterface* a_skse)
 {
+	// Init() also sets up <SKSE logs>\AliasEventDeadlockFix.log and prints the plugin
+	// name and version (CommonLibSSE-NG v7 does that unless told not to).
 	Init(a_skse);
-	InitializeLogging();
-
-	const auto* plugin = PluginDeclaration::GetSingleton();
-	log::info("{} {} loading on runtime {}", plugin->GetName(), plugin->GetVersion().string(), REL::Module::get().version().string());
+	log::info("runtime {}", REL::Module::get().version().string());
 
 	InstallHook();
 	return true;

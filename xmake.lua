@@ -2,7 +2,7 @@ set_xmakever("3.0.0")  -- the commonlibsse-ng checkout requires 3.0
 
 -- Globals
 PROJECT_NAME = "AliasEventDeadlockFix"
-PROJECT_VERSION = "0.1.0"
+PROJECT_VERSION = "0.1.1"
 PROJECT_AUTHOR = "crajjjj"
 
 set_project(PROJECT_NAME)
